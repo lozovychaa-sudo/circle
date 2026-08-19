@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Взаємне розміщення двох кіл | 7 клас</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --circle1: #2563eb;
+            --circle2: #dc2626;
+            --accent: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Nav Tabs */
+        .tabs {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            .canvas-card {
+                grid-column: span 2;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Canvas Styles */
+        .canvas-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-container {
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: block;
+        }
+
+        .status-badge {
+            margin-top: 12px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            background: #e0e7ff;
+            color: var(--primary);
+            border: 1px solid #c7d2fe;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .label-val {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .c1-label { color: var(--circle1); }
+        .c2-label { color: var(--circle2); }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #cbd5e1;
+            outline: none;
+            accent-color: var(--primary);
+        }
+
+        /* Formula Info Card */
+        .info-card {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .info-card ul {
+            padding-left: 18px;
+            margin-top: 5px;
+        }
+
+        /* Quiz Mode */
+        .quiz-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .task-box {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text);
+            min-height: 48px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .option-btn {
+            padding: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .option-btn:hover {
+            background: #f8fafc;
+            border-color: var(--primary);
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background: #e0e7ff;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .feedback-box {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .feedback-box.incorrect {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Взаємне розміщення двох кіл</h1>
+        <p class="subtitle">Інтерактивний тренажер з геометрії (7 клас)</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('explore')">🔍 Режим «Дослідження»</button>
+        <button class="tab-btn" onclick="switchTab('quiz')">🎯 Режим «Тренажер»</button>
+    </div>
+
+    <div class="main-content">
+        <!-- Visualizer Area (Common for both) -->
+        <div class="card canvas-card">
+            <div class="canvas-container">
+                <canvas id="geometryCanvas"></canvas>
+            </div>
+            <div id="statusBadge" class="status-badge">Кола перетинаються</div>
+        </div>
+
+        <!-- Controls Area (Exploration) -->
+        <div id="exploreControls" class="card">
+            <h2 style="font-size: 1.1rem; margin-bottom: 12px;">Параметри кіл:</h2>
+            
+            <div class="control-group">
+                <div class="label-val c1-label">
+                    <span>Радіус 1-го кола (R):</span>
+                    <span id="r1Val">60</span>
+                </div>
+                <input type="range" id="r1Slider" min="10" max="100" value="60">
+            </div>
+
+            <div class="control-group">
+                <div class="label-val c2-label">
+                    <span>Радіус 2-го кола (r):</span>
+                    <span id="r2Val">40</span>
+                </div>
+                <input type="range" id="r2Slider" min="10" max="100" value="40">
+            </div>
+
+            <div class="control-group">
+                <div class="label-val">
+                    <span>Відстань між центрами (d = O₁O₂):</span>
+                    <span id="dVal">70</span>
+                </div>
+                <input type="range" id="dSlider" min="0" max="220" value="70">
+            </div>
+
+            <div class="info-card" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
+                <strong>Підказка для 7 класу:</strong>
+                <ul>
+                    <li>Зовнішній дотик: $d = R + r$</li>
+                    <li>Внутрішній дотик: $d = |R - r|$</li>
+                    <li>Перетинаються: $|R - r| < d < R + r$</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quiz Area -->
+        <div id="quizControls" class="card quiz-panel hidden">
+            <div class="stats-bar">
+                <span>Рахунок: <span id="scoreVal">0</span></span>
+                <span>Поспіль (Streak): 🔥 <span id="streakVal">0</span></span>
+            </div>
+
+            <div id="taskText" class="task-box">Завантаження завдання...</div>
+
+            <!-- Type 1 Options -->
+            <div id="type1Options" class="options-grid">
+                <button class="option-btn" data-opt="0">Зовнішній дотик</button>
+                <button class="option-btn" data-opt="1">Внутрішній дотик</button>
+                <button class="option-btn" data-opt="2">Перетинаються у двох точках</button>
+                <button class="option-btn" data-opt="3">Не перетинаються (одне поза іншим)</button>
+                <button class="option-btn" data-opt="4">Не перетинаються (одне всередині іншого)</button>
+                <button class="option-btn" data-opt="5">Концентричні (спільний центр)</button>
+            </div>
+
+            <!-- Type 2 Manual Controls Hint -->
+            <div id="type2Hint" class="info-card hidden" style="background: #f1f5f9; padding: 8px; border-radius: 6px;">
+                ⚙️ Налаштуйте слайдери на графічній панелі ліворуч/вище відповідно до умови завдання.
+            </div>
+
+            <button id="checkBtn" class="btn-primary" onclick="checkAnswer()">Перевірити відповідь</button>
+            <button id="nextBtn" class="btn-primary hidden" onclick="generateTask()" style="background: #059669;">Наступне завдання ➔</button>
+
+            <div id="feedback" class="feedback-box"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State Variables
+    let state = {
+        R: 60,
+        r: 40,
+        d: 70,
+        mode: 'explore', // 'explore' or 'quiz'
+        currentTask: null,
+        selectedOption: null,
+        score: 0,
+        streak: 0
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('geometryCanvas');
+    const ctx = canvas.getContext('2d');
+    const r1Slider = document.getElementById('r1Slider');
+    const r2Slider = document.getElementById('r2Slider');
+    const dSlider = document.getElementById('dSlider');
+    const r1Val = document.getElementById('r1Val');
+    const r2Val = document.getElementById('r2Val');
+    const dVal = document.getElementById('dVal');
+    const statusBadge = document.getElementById('statusBadge');
+    const exploreControls = document.getElementById('exploreControls');
+    const quizControls = document.getElementById('quizControls');
+    const feedback = document.getElementById('feedback');
+
+    // Relations Enum
+    const RELATIONS = {
+        OUTSIDE: 0,
+        TOUCH_OUTSIDE: 1,
+        INTERSECT: 2,
+        TOUCH_INSIDE: 3,
+        INSIDE: 4,
+        CONCENTRIC: 5
+    };
+
+    const RELATION_TEXTS = {
+        [RELATIONS.OUTSIDE]: "Кола не перетинаються (одне поза іншим)",
+        [RELATIONS.TOUCH_OUTSIDE]: "Кола мають зовнішній дотик (1 спільна точка)",
+        [RELATIONS.INTERSECT]: "Кола перетинаються (2 спільні точки)",
+        [RELATIONS.TOUCH_INSIDE]: "Кола мають внутрішній дотик (1 спільна точка)",
+        [RELATIONS.INSIDE]: "Кола не перетинаються (одне всередині іншого)",
+        [RELATIONS.CONCENTRIC]: "Кола концентричні (спільний центр)"
+    };
+
+    // Math Helpers
+    function getRelation(R, r, d) {
+        if (d === 0 && R !== r) return RELATIONS.CONCENTRIC;
+        if (d === 0 && R === r) return RELATIONS.CONCENTRIC; // Coincident
+        if (d === R + r) return RELATIONS.TOUCH_OUTSIDE;
+        if (d > R + r) return RELATIONS.OUTSIDE;
+        if (d === Math.abs(R - r)) return RELATIONS.TOUCH_INSIDE;
+        if (d < Math.abs(R - r)) return RELATIONS.INSIDE;
+        if (d > Math.abs(R - r) && d < R + r) return RELATIONS.INTERSECT;
+        return RELATIONS.OUTSIDE;
+    }
+
+    function calculateIntersections(R, r, d) {
+        if (d > R + r || d < Math.abs(R - r) || d === 0) return [];
+        
+        // Distance to chord projection
+        let a = (R * R - r * r + d * d) / (2 * d);
+        let h2 = R * R - a * a;
+        let h = Math.sqrt(Math.max(0, h2));
+
+        // Intersection points assuming O1 is at (0,0) and O2 is at (d,0)
+        let x2 = a;
+        let y2_1 = h;
+        let y2_2 = -h;
+
+        if (h === 0) {
+            return [{x: x2, y: 0}]; // 1 touch point
+        }
+        return [{x: x2, y: y2_1}, {x: x2, y: y2_2}]; // 2 points
+    }
+
+    // Canvas Rendering
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        draw();
+    }
+
+    function draw() {
+        const width = canvas.width / window.devicePixelRatio;
+        const height = canvas.height / window.devicePixelRatio;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Calculate center placement to fit both circles
+        const { R, r, d } = state;
+        const totalWidth = R + d + r;
+        const startX = (width - d) / 2;
+        const centerY = height / 2;
+
+        const O1 = { x: startX, y: centerY };
+        const O2 = { x: startX + d, y: centerY };
+
+        // Draw Line Segment O1O2
+        ctx.beginPath();
+        ctx.moveTo(O1.x, O1.y);
+        ctx.lineTo(O2.x, O2.y);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Circle 1 (Blue)
+        ctx.beginPath();
+        ctx.arc(O1.x, O1.y, R, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 2.5;
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.05)';
+        ctx.fill();
+        ctx.stroke();
+
+        // Circle 2 (Red)
+        ctx.beginPath();
+        ctx.arc(O2.x, O2.y, r, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 2.5;
+        ctx.fillStyle = 'rgba(220, 38, 38, 0.05)';
+        ctx.fill();
+        ctx.stroke();
+
+        // Centers
+        drawPoint(O1.x, O1.y, 'O₁', '#2563eb');
+        drawPoint(O2.x, O2.y, 'O₂', '#dc2626');
+
+        // Draw Radii Lines
+        drawRadius(O1, R, Math.PI * 0.75, 'R', '#2563eb');
+        drawRadius(O2, r, Math.PI * 0.25, 'r', '#dc2626');
+
+        // Intersections
+        const pts = calculateIntersections(R, r, d);
+        pts.forEach((pt, index) => {
+            const canvasPtX = O1.x + pt.x;
+            const canvasPtY = O1.y - pt.y; // Invert Y for canvas space
+            drawIntersectionPoint(canvasPtX, canvasPtY, `A${pts.length > 1 ? index + 1 : ''}`);
+        });
+
+        // Update Status Badge
+        const rel = getRelation(R, r, d);
+        statusBadge.textContent = RELATION_TEXTS[rel];
+    }
+
+    function drawPoint(x, y, label, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(label, x - 10, y + 18);
+    }
+
+    function drawRadius(center, radius, angle, label, color) {
+        const edgeX = center.x + radius * Math.cos(angle);
+        const edgeY = center.y + radius * Math.sin(angle);
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(edgeX, edgeY);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = color;
+        ctx.font = 'italic 12px sans-serif';
+        ctx.fillText(label, (center.x + edgeX) / 2 - 5, (center.y + edgeY) / 2 - 5);
+    }
+
+    function drawIntersectionPoint(x, y, label) {
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = '#10b981';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#065f46';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(label, x + 8, y - 8);
+    }
+
+    // Controls Handling
+    function updateFromSliders() {
+        state.R = parseInt(r1Slider.value);
+        state.r = parseInt(r2Slider.value);
+        state.d = parseInt(dSlider.value);
+
+        r1Val.textContent = state.R;
+        r2Val.textContent = state.r;
+        dVal.textContent = state.d;
+
+        draw();
+    }
+
+    r1Slider.addEventListener('input', updateFromSliders);
+    r2Slider.addEventListener('input', updateFromSliders);
+    dSlider.addEventListener('input', updateFromSliders);
+
+    // Tab Navigation
+    function switchTab(tab) {
+        state.mode = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if (tab === 'explore') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            exploreControls.classList.remove('hidden');
+            quizControls.classList.add('hidden');
+            r1Slider.disabled = false;
+            r2Slider.disabled = false;
+            dSlider.disabled = false;
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            exploreControls.classList.add('hidden');
+            quizControls.classList.remove('hidden');
+            generateTask();
+        }
+    }
+
+    // --- Quiz Logic ---
+    function generateTask() {
+        feedback.className = 'feedback-box';
+        feedback.textContent = '';
+        document.getElementById('checkBtn').classList.remove('hidden');
+        document.getElementById('nextBtn').classList.add('hidden');
+        state.selectedOption = null;
+
+        document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+
+        // Randomly select type 1 or type 2
+        const type = Math.random() < 0.5 ? 1 : 2;
+
+        if (type === 1) {
+            // Type 1: Given R, r, d - Choose Relation
+            const R = Math.floor(Math.random() * 6 + 4) * 10; // 40-90
+            const r = Math.floor(Math.random() * 4 + 2) * 10; // 20-50
+            // Pick a random relation and generate corresponding d
+            const targetRel = Math.floor(Math.random() * 5);
+            let d;
+            switch(targetRel) {
+                case RELATIONS.OUTSIDE: d = R + r + 20; break;
+                case RELATIONS.TOUCH_OUTSIDE: d = R + r; break;
+                case RELATIONS.INTERSECT: d = Math.abs(R - r) + 20; break;
+                case RELATIONS.TOUCH_INSIDE: d = Math.abs(R - r); break;
+                case RELATIONS.INSIDE: d = Math.max(10, Math.abs(R - r) - 20); break;
+                default: d = R + r;
+            }
+
+            state.currentTask = { type: 1, R, r, d, expectedRel: targetRel };
+            
+            // Sync Canvas
+            state.R = R; state.r = r; state.d = d;
+            r1Slider.value = R; r2Slider.value = r; dSlider.value = d;
+            updateFromSliders();
+            // Disable manual sliding in Type 1
+            r1Slider.disabled = true; r2Slider.disabled = true; dSlider.disabled = true;
+
+            document.getElementById('taskText').innerHTML = `Дано два кола з радіусами <b>R = ${R/10} см</b>, <b>r = ${r/10} см</b> та відстанню між центрами <b>d = ${d/10} см</b>.<br>Яке їх взаємне розміщення?`;
+            document.getElementById('type1Options').classList.remove('hidden');
+            document.getElementById('type2Hint').classList.add('hidden');
+
+        } else {
+            // Type 2: Interactive Construction Task
+            r1Slider.disabled = false; r2Slider.disabled = false; dSlider.disabled = false;
+            
+            const targetRel = Math.floor(Math.random() * 4) + 1; // Avoid outside/concentric for variety
+            const targetR = Math.floor(Math.random() * 4 + 4) * 10; // 40-70
+
+            state.currentTask = { type: 2, R: targetR, expectedRel: targetRel };
+
+            // Set initial state far from answer
+            state.R = targetR; state.r = 30; state.d = 120;
+            r1Slider.value = state.R; r2Slider.value = state.r; dSlider.value = state.d;
+            updateFromSliders();
+
+            const taskDescriptions = {
+                [RELATIONS.TOUCH_OUTSIDE]: `Налаштуйте слайдери так, щоб кола мали <b>зовнішній дотик</b> при R = ${targetR/10} см.`,
+                [RELATIONS.TOUCH_INSIDE]: `Налаштуйте слайдери так, щоб кола мали <b>внутрішній дотик</b> при R = ${targetR/10} см.`,
+                [RELATIONS.INTERSECT]: `Налаштуйте слайдери так, щоб кола <b>перетиналися у двох точках</b> при R = ${targetR/10} см.`,
+                [RELATIONS.INSIDE]: `Налаштуйте слайдери так, щоб одне коло було <b>всередині іншого (без дотику)</b> при R = ${targetR/10} см.`
+            };
+
+            document.getElementById('taskText').innerHTML = taskDescriptions[targetRel];
+            document.getElementById('type1Options').classList.add('hidden');
+            document.getElementById('type2Hint').classList.remove('hidden');
+            exploreControls.classList.remove('hidden'); // Show sliders in quiz for type 2
+        }
+    }
+
+    // Option Selection for Type 1
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            e.target.classList.add('selected');
+            state.selectedOption = parseInt(e.target.getAttribute('data-opt'));
+        });
+    });
+
+    function checkAnswer() {
+        const task = state.currentTask;
+        let isCorrect = false;
+        let hint = "";
+
+        if (task.type === 1) {
+            if (state.selectedOption === null) {
+                alert('Будь ласка, оберіть варіант відповіді!');
+                return;
+            }
+            isCorrect = (state.selectedOption === task.expectedRel);
+            
+            // Build Hints
+            const R = task.R / 10, r = task.r / 10, d = task.d / 10;
+            if (task.expectedRel === RELATIONS.TOUCH_OUTSIDE) hint = `Згадай: для зовнішнього дотику d = R + r (${d} = ${R} + ${r}).`;
+            else if (task.expectedRel === RELATIONS.TOUCH_INSIDE) hint = `Згадай: для внутрішнього дотику d = |R - r| (${d} = |${R} - ${r}|).`;
+            else if (task.expectedRel === RELATIONS.INTERSECT) hint = `Згадай: кола перетинаються, якщо |R - r| < d < R + r (${Math.abs(R-r)} < ${d} < ${R+r}).`;
+            else if (task.expectedRel === RELATIONS.OUTSIDE) hint = `Згадай: кола поза один одним, якщо d > R + r (${d} > ${R + r}).`;
+            else if (task.expectedRel === RELATIONS.INSIDE) hint = `Згадай: одне всередині іншого, якщо d < |R - r| (${d} < ${Math.abs(R-r)}).`;
+
+        } else if (task.type === 2) {
+            const currentRel = getRelation(state.R, state.r, state.d);
+            const rCorrect = (state.R === task.R);
+            isCorrect = (currentRel === task.expectedRel) && rCorrect;
+
+            if (!rCorrect) hint = `Переконайся, що радіус R встановлено точно на ${task.R/10} см.`;
+            else {
+                if (task.expectedRel === RELATIONS.TOUCH_OUTSIDE) hint = `Потрібно встановити d = R + r (зараз d=${state.d/10}, R+r=${(state.R+state.r)/10}).`;
+                else if (task.expectedRel === RELATIONS.TOUCH_INSIDE) hint = `Потрібно встановити d = |R - r| (зараз d=${state.d/10}, |R-r|=${Math.abs(state.R-state.r)/10}).`;
+                else if (task.expectedRel === RELATIONS.INTERSECT) hint = `Потрібно, щоб відстань d була між |R-r| та R+r.`;
+                else if (task.expectedRel === RELATIONS.INSIDE) hint = `Потрібно, щоб відстань d була меншою за |R-r|.`;
+            }
+        }
+
+        if (isCorrect) {
+            state.score += 10;
+            state.streak += 1;
+            feedback.className = 'feedback-box correct';
+            feedback.innerHTML = `🎉 <b>Чудово! Відповідь правильна.</b>`;
+            document.getElementById('checkBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+        } else {
+            state.streak = 0;
+            feedback.className = 'feedback-box incorrect';
+            feedback.innerHTML = `❌ <b>Помилка!</b> ${hint}`;
+        }
+
+        document.getElementById('scoreVal').textContent = state.score;
+        document.getElementById('streakVal').textContent = state.streak;
+    }
+
+    // Initialization
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', () => {
+        resizeCanvas();
+        updateFromSliders();
+    });
+</script>
+</body>
+</html>
