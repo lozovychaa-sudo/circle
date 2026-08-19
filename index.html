@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Взаємне розміщення двох кіл — інтерактивний тренажер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F7F0;
+    --paper-line:#DCE3D6;
+    --ink:#232A3B;
+    --ink-soft:#5B6478;
+    --r1:#C1440E;
+    --r2:#147A6C;
+    --d-col:#6B4FA0;
+    --accent:#D6A419;
+    --outside:#5B6B8C;
+    --ok:#2F8F46;
+    --ok-bg:#E5F3E7;
+    --bad:#C23B3B;
+    --bad-bg:#FBEAEA;
+    --card:#FFFFFF;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(35,42,59,.06), 0 1px 2px rgba(35,42,59,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    background-size:26px 26px;
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    padding:20px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:18px 24px;
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:18px;
+    border:1px solid #E7E2D3;
+  }
+  .compass{width:56px;height:56px;flex:none;}
+  .compass .leg{transform-origin:28px 8px;animation:swing 1.6s ease-out 1;}
+  .compass .legL{animation-delay:.05s;}
+  .compass .legR{animation-delay:.15s;}
+  @keyframes swing{
+    0%{transform:rotate(0deg);}
+    60%{transform:rotate(var(--rot));}
+    100%{transform:rotate(var(--rot));}
+  }
+  .legL{--rot:-11deg;}
+  .legR{--rot:11deg;}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(20px,2.6vw,28px);
+    margin:0;
+    letter-spacing:-.01em;
+  }
+  header p{
+    margin:2px 0 0;
+    color:var(--ink-soft);
+    font-size:14px;
+    font-family:'IBM Plex Mono',monospace;
+    letter-spacing:.02em;
+  }
+
+  /* ---------- layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:1.35fr 1fr;
+    gap:18px;
+  }
+  @media(max-width:880px){
+    .grid{grid-template-columns:1fr;}
+  }
+  .panel{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    border:1px solid #E7E2D3;
+    padding:18px;
+  }
+
+  /* ---------- canvas card ---------- */
+  .canvas-card svg#scene{
+    width:100%;
+    height:auto;
+    display:block;
+    border-radius:10px;
+    background:
+      linear-gradient(#EDF1E9 1px, transparent 1px) 0 0/24px 24px,
+      linear-gradient(90deg,#EDF1E9 1px, transparent 1px) 0 0/24px 24px,
+      #FBFCF9;
+    border:1px solid #E3E9DC;
+  }
+  .note{
+    margin-top:14px;
+    padding:14px 16px;
+    border-radius:10px;
+    background:#FBF8EE;
+    border:1px dashed #D9CFAE;
+    font-size:14.5px;
+    line-height:1.55;
+  }
+  .note .state-name{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:17px;
+    display:block;
+    margin-bottom:4px;
+  }
+  .minibar-wrap{margin-top:12px;}
+  .minibar-wrap svg{width:100%;height:56px;display:block;}
+
+  /* ---------- toggle ---------- */
+  .segmented{
+    display:flex;
+    background:#EFEBDD;
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+    margin-bottom:18px;
+  }
+  .segmented button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:9px 10px;
+    border-radius:999px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .segmented button.active{
+    background:var(--ink);
+    color:#fff;
+  }
+  .segmented button:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  /* ---------- sliders ---------- */
+  .slider-row{margin-bottom:16px;}
+  .slider-row:last-child{margin-bottom:0;}
+  .slider-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+    font-size:14px;
+    font-weight:600;
+  }
+  .swatch{
+    display:inline-block;
+    width:10px;height:10px;
+    border-radius:3px;
+    margin-right:7px;
+    vertical-align:middle;
+  }
+  .slider-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:14px;
+    background:#F2EEE0;
+    border-radius:6px;
+    padding:2px 8px;
+  }
+  input[type=range]{
+    width:100%;
+    -webkit-appearance:none;
+    appearance:none;
+    height:6px;
+    border-radius:999px;
+    background:#E4E0D0;
+    outline-offset:4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--track-color, var(--ink));
+    border:3px solid #fff;
+    box-shadow:0 0 0 1.5px var(--track-color, var(--ink));
+    cursor:pointer;
+    margin-top:-7px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--track-color, var(--ink));
+    border:3px solid #fff;
+    box-shadow:0 0 0 1.5px var(--track-color, var(--ink));
+    cursor:pointer;
+  }
+  input[type=range]:disabled{opacity:.45;cursor:not-allowed;}
+  .r1-row{--track-color:var(--r1);}
+  .r2-row{--track-color:var(--r2);}
+  .d-row{--track-color:var(--d-col);}
+  .locked-hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-style:italic;
+    margin-top:10px;
+  }
+
+  hr.div{
+    border:none;
+    border-top:1px solid #E7E2D3;
+    margin:18px 0;
+  }
+
+  /* ---------- trainer ---------- */
+  .score-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .badge{
+    flex:1;
+    background:#F2EEE0;
+    border-radius:10px;
+    padding:10px 12px;
+    text-align:center;
+  }
+  .badge .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:22px;
+    display:block;
+  }
+  .badge .lbl{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+  }
+  .badge.score .num{color:var(--accent);}
+  .badge.streak .num{color:var(--r2);}
+
+  .task-card{
+    background:#FBF8EE;
+    border:1px solid #E9E0C4;
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:16px;
+  }
+  .task-card .eyebrow{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--ink-soft);
+    font-weight:700;
+    margin-bottom:6px;
+    display:block;
+  }
+  .task-card .question{
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    font-weight:600;
+    line-height:1.4;
+  }
+  .task-card .question .kv{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+  }
+
+  .answers{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:14px;
+  }
+  .answer-btn{
+    text-align:left;
+    padding:10px 12px;
+    border-radius:9px;
+    border:1.5px solid #E1DBC4;
+    background:#fff;
+    font-family:'Inter',sans-serif;
+    font-size:13.7px;
+    font-weight:500;
+    cursor:pointer;
+    transition:border-color .15s, transform .1s;
+  }
+  .answer-btn:hover{border-color:var(--ink);}
+  .answer-btn:active{transform:scale(.99);}
+  .answer-btn.correct{background:var(--ok-bg);border-color:var(--ok);}
+  .answer-btn.wrong{background:var(--bad-bg);border-color:var(--bad);}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:11px 16px;
+    border-radius:10px;
+    border:none;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    width:100%;
+    transition:filter .15s, transform .1s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.15);}
+  .btn-accent{background:var(--accent);color:#332600;}
+  .btn-accent:hover{filter:brightness(1.08);}
+  .btn-row{display:flex;gap:10px;margin-top:14px;}
+
+  .feedback{
+    margin-top:14px;
+    padding:13px 14px;
+    border-radius:10px;
+    font-size:14px;
+    line-height:1.55;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.ok{background:var(--ok-bg);border:1.5px solid var(--ok);color:#1C5A2C;}
+  .feedback.bad{background:var(--bad-bg);border:1.5px solid var(--bad);color:#7A2323;}
+  .feedback .head{font-weight:700;font-family:'Fraunces',serif;font-size:15px;display:block;margin-bottom:3px;}
+
+  .kv{font-family:'IBM Plex Mono',monospace;}
+
+  footer{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:12px;
+    margin-top:20px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .compass .leg{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="compass" viewBox="0 0 56 56" fill="none">
+      <circle cx="28" cy="8" r="3.2" fill="#232A3B"/>
+      <line class="leg legL" x1="28" y1="8" x2="14" y2="50" stroke="#C1440E" stroke-width="3.4" stroke-linecap="round"/>
+      <line class="leg legR" x1="28" y1="8" x2="42" y2="50" stroke="#147A6C" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="14" cy="50" r="2.4" fill="#C1440E"/>
+      <circle cx="42" cy="50" r="2.4" fill="#147A6C"/>
+    </svg>
+    <div>
+      <h1>Взаємне розміщення двох кіл</h1>
+      <p>7 клас · Геометрія · інтерактивна вправа</p>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT: canvas -->
+    <div class="panel canvas-card">
+      <svg id="scene" viewBox="0 0 620 380" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <div class="note" id="demoNote">
+        <span class="state-name" id="stateName">—</span>
+        <span id="stateExplain">Рухайте повзунки праворуч, щоб побачити, як змінюється взаємне розміщення кіл.</span>
+      </div>
+
+      <div class="minibar-wrap" id="minibarWrap">
+        <svg id="minibar" viewBox="0 0 500 56" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <!-- RIGHT: controls -->
+    <div class="panel">
+
+      <div class="segmented">
+        <button id="btnDemo" class="active" onclick="setMode('demo')">Демонстрація</button>
+        <button id="btnTrainer" onclick="setMode('trainer')">Тренажер</button>
+      </div>
+
+      <!-- trainer-only scoreboard -->
+      <div class="score-row" id="scoreRow" style="display:none;">
+        <div class="badge score"><span class="num" id="scoreVal">0</span><span class="lbl">Рахунок</span></div>
+        <div class="badge streak"><span class="num" id="streakVal">0</span><span class="lbl">Серія</span></div>
+      </div>
+
+      <!-- trainer-only task card -->
+      <div class="task-card" id="taskCard" style="display:none;">
+        <span class="eyebrow" id="taskEyebrow">Завдання</span>
+        <div class="question" id="taskQuestion">—</div>
+        <div class="answers" id="answersBox"></div>
+      </div>
+
+      <!-- sliders (shared demo / trainer) -->
+      <div class="slider-row r1-row">
+        <div class="slider-label">
+          <span><span class="swatch" style="background:var(--r1)"></span>Радіус першого кола, R₁</span>
+          <span class="slider-value" id="valR1">4</span>
+        </div>
+        <input type="range" id="sliderR1" min="1" max="10" step="1" value="4">
+      </div>
+
+      <div class="slider-row r2-row">
+        <div class="slider-label">
+          <span><span class="swatch" style="background:var(--r2)"></span>Радіус другого кола, R₂</span>
+          <span class="slider-value" id="valR2">6</span>
+        </div>
+        <input type="range" id="sliderR2" min="1" max="10" step="1" value="6">
+      </div>
+
+      <div class="slider-row d-row">
+        <div class="slider-label">
+          <span><span class="swatch" style="background:var(--d-col)"></span>Відстань між центрами, d</span>
+          <span class="slider-value" id="valD">9</span>
+        </div>
+        <input type="range" id="sliderD" min="0" max="20" step="1" value="9">
+      </div>
+
+      <div class="locked-hint" id="lockedHint" style="display:none;">
+        🔒 Значення задані умовою завдання — оберіть правильну відповідь нижче.
+      </div>
+
+      <!-- trainer-only action buttons -->
+      <div id="trainerButtons" style="display:none;">
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnCheck" onclick="checkConstruct()">Перевірити налаштування</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="btn-row" id="newTaskRow" style="display:none;">
+        <button class="btn btn-accent" onclick="newTask()">🎲 Нове завдання</button>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>Взаємне розміщення двох кіл · d — відстань між центрами O₁ і O₂</footer>
+</div>
+
+<script>
+/* ================= math ================= */
+const CLASS_META = {
+  outside:     {name:'Кола розташовані одне поза одним', color:'#5B6B8C'},
+  'ext-tangent':{name:'Зовнішній дотик',                  color:'#D6A419'},
+  intersect:   {name:'Перетинаються у двох точках',       color:'#147A6C'},
+  'int-tangent':{name:'Внутрішній дотик',                 color:'#6B4FA0'},
+  inside:      {name:'Одне коло лежить всередині іншого', color:'#C1440E'},
+  same:        {name:'Кола збігаються',                   color:'#232A3B'},
+};
+const QUIZ_KEYS = ['outside','ext-tangent','intersect','int-tangent','inside'];
+
+function classify(R1,R2,d){
+  const eps = 1e-6;
+  const diff = Math.abs(R1-R2);
+  const sum  = R1+R2;
+  if (Math.abs(d) < eps && diff < eps) return 'same';
+  if (d > sum + eps) return 'outside';
+  if (Math.abs(d - sum) <= eps) return 'ext-tangent';
+  if (d < sum - eps && d > diff + eps) return 'intersect';
+  if (Math.abs(d - diff) <= eps && diff > eps) return 'int-tangent';
+  if (d < diff - eps) return 'inside';
+  return 'same';
+}
+
+function explain(R1,R2,d){
+  const key = classify(R1,R2,d);
+  const diff = Math.abs(R1-R2);
+  const sum = R1+R2;
+  let text = '';
+  switch(key){
+    case 'outside':
+      text = `Кола не мають спільних точок, бо d (${d}) &gt; R₁ + R₂ (${sum}). Кола лежать одне поза одним.`;
+      break;
+    case 'ext-tangent':
+      text = `Кола мають рівно одну спільну точку, бо d (${d}) = R₁ + R₂ (${sum}). Це зовнішній дотик.`;
+      break;
+    case 'intersect':
+      text = `Кола перетинаються у двох точках, бо |R₁ − R₂| (${diff}) &lt; d (${d}) &lt; R₁ + R₂ (${sum}).`;
+      break;
+    case 'int-tangent':
+      text = `Кола мають рівно одну спільну точку, бо d (${d}) = |R₁ − R₂| (${diff}). Це внутрішній дотик.`;
+      break;
+    case 'inside':
+      text = `Спільних точок немає: одне коло лежить всередині іншого, бо d (${d}) &lt; |R₁ − R₂| (${diff}).`;
+      break;
+    case 'same':
+      text = `d = 0 і R₁ = R₂ — кола мають той самий центр і той самий радіус, тобто збігаються.`;
+      break;
+  }
+  return {key, text};
+}
+
+/* ================= state ================= */
+const state = {
+  mode: 'demo',           // 'demo' | 'trainer'
+  R1: 4, R2: 6, d: 9,
+  score: 0, streak: 0,
+  trainerTaskType: null,  // 'identify' | 'construct'
+  currentTask: null,
+};
+
+const el = id => document.getElementById(id);
+const sliderR1 = el('sliderR1'), sliderR2 = el('sliderR2'), sliderD = el('sliderD');
+
+function readSliders(){
+  state.R1 = Number(sliderR1.value);
+  state.R2 = Number(sliderR2.value);
+  state.d  = Number(sliderD.value);
+  el('valR1').textContent = state.R1;
+  el('valR2').textContent = state.R2;
+  el('valD').textContent  = state.d;
+}
+
+/* ================= SVG scene ================= */
+function buildScene(R1,R2,d){
+  const W=620,H=380,pad=48;
+  const left = Math.min(-R1, d-R2);
+  const right = Math.max(R1, d+R2);
+  const width = Math.max(right-left, 1);
+  const heightExtent = Math.max(2*R1, 2*R2, 1);
+  const scale = Math.min((W-2*pad)/width, (H-2*pad)/heightExtent, 34);
+  const cxMath = (left+right)/2;
+  const toX = x => W/2 + (x - cxMath)*scale;
+  const cy = H/2;
+
+  const o1x = toX(0), o2x = toX(d);
+  const r1s = R1*scale, r2s = R2*scale;
+
+  const dir1 = {x:-0.6,y:-0.8}, dir2 = {x:0.6,y:-0.8};
+  const r1end = {x:o1x+dir1.x*r1s, y:cy+dir1.y*r1s};
+  const r2end = {x:o2x+dir2.x*r2s, y:cy+dir2.y*r2s};
+
+  const midX = (o1x+o2x)/2;
+
+  return `
+    <line x1="${o1x}" y1="${cy}" x2="${o2x}" y2="${cy}" stroke="#6B4FA0" stroke-width="2" stroke-dasharray="6 5"/>
+    <circle cx="${o1x}" cy="${cy}" r="3.5" fill="#232A3B"/>
+    <circle cx="${o2x}" cy="${cy}" r="3.5" fill="#232A3B"/>
+    <text x="${o1x}" y="${cy+18}" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#232A3B">O₁</text>
+    <text x="${o2x}" y="${cy+18}" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#232A3B">O₂</text>
+
+    <rect x="${midX-34}" y="${cy-24}" width="68" height="18" rx="4" fill="#F5F7F0" opacity="0.9"/>
+    <text x="${midX}" y="${cy-11}" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" font-weight="600" fill="#6B4FA0">d = ${d}</text>
+
+    <circle cx="${o1x}" cy="${cy}" r="${r1s}" fill="#C1440E" fill-opacity="0.10" stroke="#C1440E" stroke-width="2.6"/>
+    <circle cx="${o2x}" cy="${cy}" r="${r2s}" fill="#147A6C" fill-opacity="0.10" stroke="#147A6C" stroke-width="2.6"/>
+
+    <line x1="${o1x}" y1="${cy}" x2="${r1end.x}" y2="${r1end.y}" stroke="#C1440E" stroke-width="1.6"/>
+    <line x1="${o2x}" y1="${cy}" x2="${r2end.x}" y2="${r2end.y}" stroke="#147A6C" stroke-width="1.6"/>
+    <text x="${r1end.x-6}" y="${r1end.y-6}" text-anchor="end" font-family="IBM Plex Mono" font-size="13" font-weight="600" fill="#C1440E">R₁=${R1}</text>
+    <text x="${r2end.x+6}" y="${r2end.y-6}" text-anchor="start" font-family="IBM Plex Mono" font-size="13" font-weight="600" fill="#147A6C">R₂=${R2}</text>
+  `;
+}
+
+function buildMinibar(R1,R2,d,activeKey){
+  const diff = Math.abs(R1-R2), sum = R1+R2;
+  const domainMax = Math.max(sum*1.2, d*1.1, 5);
+  const padX = 14, W=500, usable=W-2*padX;
+  const x = v => padX + (v/domainMax)*usable;
+  const xDiff = x(diff), xSum = x(sum), xD = x(d);
+  const y0=18, barH=14;
+  const col = CLASS_META[activeKey].color;
+
+  return `
+    <rect x="${padX}" y="${y0}" width="${xDiff-padX}" height="${barH}" fill="#C1440E" fill-opacity="0.16"/>
+    <rect x="${xDiff}" y="${y0}" width="${xSum-xDiff}" height="${barH}" fill="#147A6C" fill-opacity="0.16"/>
+    <rect x="${xSum}" y="${y0}" width="${W-padX-xSum}" height="${barH}" fill="#5B6B8C" fill-opacity="0.16"/>
+    <line x1="${xDiff}" y1="${y0-3}" x2="${xDiff}" y2="${y0+barH+3}" stroke="#6B4FA0" stroke-width="1.4"/>
+    <line x1="${xSum}" y1="${y0-3}" x2="${xSum}" y2="${y0+barH+3}" stroke="#6B4FA0" stroke-width="1.4"/>
+    <text x="${xDiff}" y="${y0+barH+16}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#5B6478">|R₁−R₂|=${diff}</text>
+    <text x="${xSum}" y="${y0+barH+16}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#5B6478">R₁+R₂=${sum}</text>
+    <polygon points="${xD-6},${y0-9} ${xD+6},${y0-9} ${xD},${y0-1}" fill="${col}"/>
+    <text x="${xD}" y="${y0-12}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="700" fill="${col}">d=${d}</text>
+  `;
+}
+
+function render(){
+  readSliders();
+  const {R1,R2,d} = state;
+  el('scene').innerHTML = buildScene(R1,R2,d);
+  const {key, text} = explain(R1,R2,d);
+  el('minibar').innerHTML = buildMinibar(R1,R2,d,key);
+
+  if (state.mode === 'demo'){
+    el('stateName').textContent = CLASS_META[key].name;
+    el('stateName').style.color = CLASS_META[key].color;
+    el('stateExplain').innerHTML = text;
+  } else if (state.trainerTaskType === 'construct'){
+    el('stateName').textContent = CLASS_META[key].name;
+    el('stateName').style.color = CLASS_META[key].color;
+    el('stateExplain').innerHTML = 'Поточне розміщення. ' + text;
+  }
+}
+
+/* ================= mode switching ================= */
+function setMode(mode){
+  state.mode = mode;
+  el('btnDemo').classList.toggle('active', mode==='demo');
+  el('btnTrainer').classList.toggle('active', mode==='trainer');
+
+  el('scoreRow').style.display = mode==='trainer' ? 'flex' : 'none';
+  el('taskCard').style.display = mode==='trainer' ? 'block' : 'none';
+  el('newTaskRow').style.display = mode==='trainer' ? 'flex' : 'none';
+  el('demoNote').style.display = mode==='demo' || state.trainerTaskType==='construct' ? 'block' : 'none';
+
+  el('feedback').className = 'feedback';
+  el('feedback').textContent = '';
+
+  if (mode === 'trainer'){
+    if (!state.currentTask) newTask();
+  } else {
+    sliderR1.disabled = false; sliderR2.disabled = false; sliderD.disabled = false;
+    el('lockedHint').style.display = 'none';
+    el('trainerButtons').style.display = 'none';
+    render();
+  }
+}
+
+/* ================= trainer logic ================= */
+const PRAISE = ['Чудово!','Точно!','Так тримати!','Правильно!','Влучно!'];
+
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function newTask(){
+  el('feedback').className = 'feedback';
+  el('feedback').textContent = '';
+  state.trainerTaskType = Math.random() < 0.5 ? 'identify' : 'construct';
+
+  if (state.trainerTaskType === 'identify'){
+    let R1,R2,d,key;
+    do {
+      R1 = randInt(2,9); R2 = randInt(2,9); d = randInt(0,16);
+      key = classify(R1,R2,d);
+    } while (key === 'same');
+
+    sliderR1.value = R1; sliderR2.value = R2; sliderD.value = d;
+    sliderR1.disabled = true; sliderR2.disabled = true; sliderD.disabled = true;
+    el('lockedHint').style.display = 'block';
+    el('trainerButtons').style.display = 'none';
+    el('demoNote').style.display = 'none';
+
+    state.currentTask = {type:'identify', correctKey:key};
+
+    el('taskEyebrow').textContent = 'Визнач розміщення';
+    el('taskQuestion').innerHTML =
+      `Яким є взаємне розміщення кіл, якщо <span class="kv">R₁ = ${R1}</span>, <span class="kv">R₂ = ${R2}</span>, <span class="kv">d = ${d}</span>?`;
+
+    const box = el('answersBox');
+    box.innerHTML = '';
+    // shuffle quiz keys for variety
+    const opts = [...QUIZ_KEYS].sort(()=>Math.random()-0.5);
+    opts.forEach(k=>{
+      const b = document.createElement('button');
+      b.className = 'answer-btn';
+      b.textContent = CLASS_META[k].name;
+      b.onclick = () => checkIdentify(k, b);
+      box.appendChild(b);
+    });
+
+  } else {
+    // construct task
+    const target = QUIZ_KEYS[randInt(0,QUIZ_KEYS.length-1)];
+    let R1,R2,d;
+    do {
+      R1 = randInt(1,10); R2 = randInt(1,10); d = randInt(0,20);
+    } while (classify(R1,R2,d) === target);
+
+    sliderR1.value = R1; sliderR2.value = R2; sliderD.value = d;
+    sliderR1.disabled = false; sliderR2.disabled = false; sliderD.disabled = false;
+    el('lockedHint').style.display = 'none';
+    el('trainerButtons').style.display = 'block';
+    el('demoNote').style.display = 'block';
+
+    state.currentTask = {type:'construct', targetKey:target};
+
+    el('taskEyebrow').textContent = 'Побудуй розміщення';
+    el('taskQuestion').innerHTML =
+      `Пересуньте повзунки так, щоб кола мали розміщення: <br><span class="kv" style="color:${CLASS_META[target].color}">«${CLASS_META[target].name}»</span>`;
+    el('answersBox').innerHTML = '';
+  }
+
+  render();
+}
+
+function checkIdentify(chosenKey, btnEl){
+  const task = state.currentTask;
+  const correct = chosenKey === task.correctKey;
+  document.querySelectorAll('.answer-btn').forEach(b=>b.disabled=true);
+
+  if (correct){
+    btnEl.classList.add('correct');
+    state.score += 10 + state.streak*2;
+    state.streak += 1;
+    showFeedback(true, `${PRAISE[randInt(0,PRAISE.length-1)]} Це дійсно «${CLASS_META[task.correctKey].name.toLowerCase()}».`);
+  } else {
+    btnEl.classList.add('wrong');
+    const {R1,R2,d} = state;
+    document.querySelectorAll('.answer-btn').forEach(b=>{
+      if (b.textContent === CLASS_META[task.correctKey].name) b.classList.add('correct');
+    });
+    state.streak = 0;
+    const {text} = explain(R1,R2,d);
+    showFeedback(false, `Ні. Правильна відповідь — «${CLASS_META[task.correctKey].name}». ${text}`);
+  }
+  updateScoreboard();
+}
+
+function checkConstruct(){
+  readSliders();
+  const task = state.currentTask;
+  const key = classify(state.R1,state.R2,state.d);
+  const correct = key === task.targetKey;
+
+  if (correct){
+    state.score += 10 + state.streak*2;
+    state.streak += 1;
+    showFeedback(true, `${PRAISE[randInt(0,PRAISE.length-1)]} Поточне розміщення дійсно «${CLASS_META[task.targetKey].name.toLowerCase()}».`);
+  } else {
+    state.streak = 0;
+    const hint = hintForTarget(task.targetKey, state.R1, state.R2, state.d);
+    showFeedback(false, `Поки що ні — зараз це «${CLASS_META[key].name.toLowerCase()}». ${hint}`);
+  }
+  updateScoreboard();
+}
+
+function hintForTarget(target,R1,R2,d){
+  const diff=Math.abs(R1-R2), sum=R1+R2;
+  switch(target){
+    case 'outside': return `Потрібно, щоб d був більшим за R₁+R₂ (${sum}). Зараз d = ${d}.`;
+    case 'ext-tangent': return `Потрібно, щоб d дорівнював R₁+R₂ (${sum}). Зараз d = ${d}.`;
+    case 'intersect': return `Потрібно, щоб d був між |R₁−R₂| (${diff}) і R₁+R₂ (${sum}). Зараз d = ${d}.`;
+    case 'int-tangent': return `Потрібно, щоб d дорівнював |R₁−R₂| (${diff}), а R₁≠R₂. Зараз d = ${d}, |R₁−R₂| = ${diff}.`;
+    case 'inside': return `Потрібно, щоб d був меншим за |R₁−R₂| (${diff}). Зараз d = ${d}.`;
+  }
+  return '';
+}
+
+function showFeedback(ok, msg){
+  const f = el('feedback');
+  f.className = 'feedback show ' + (ok?'ok':'bad');
+  f.innerHTML = `<span class="head">${ok ? '✅ Правильно' : '❌ Спробуйте ще'}</span>${msg}`;
+}
+
+function updateScoreboard(){
+  el('scoreVal').textContent = state.score;
+  el('streakVal').textContent = state.streak;
+}
+
+/* ================= wire up ================= */
+[sliderR1, sliderR2, sliderD].forEach(s=>{
+  s.addEventListener('input', ()=>{
+    render();
+    if (state.mode==='trainer' && state.trainerTaskType==='construct'){
+      el('feedback').className='feedback';
+    }
+  });
+});
+
+render();
+</script>
+</body>
+</html>
